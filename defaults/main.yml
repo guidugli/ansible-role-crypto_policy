@@ -1,0 +1,15 @@
+---
+# defaults file for crypto_policy
+
+# If true/yes, install and configure crypto policy
+# on the system. Default settings will only
+# configure cryto policy on RedHat/CentOS/Fedora systems.
+enable_crypto_policy: "{{ _enable_crypto_policy }}"
+
+# Valid values are DEFAULT, FUTURE and FIPS
+# Recommended using DEFAULT or FUTURE
+# LEGACY is not allowed for security reasons.
+crypto_policy: DEFAULT
+
+# If policy is updated, reboot the target device?
+crypto_reboot_after_update: yes

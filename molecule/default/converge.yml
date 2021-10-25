@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    enable_crypto_policy: yes
+  roles:
+    - role: guidugli.crypto_policy

@@ -1,0 +1,43 @@
+---
+# tasks file for crypto_policy
+
+- name: Ensure package is installed
+  package:
+    name: "{{ crypto_policy_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Get system crypto policy
+  command: "/usr/bin/update-crypto-policies --show"
+  register: crypto_cmd_result
+  failed_when: crypto_cmd_result.rc != 0 or (crypto_cmd_result.stdout | length == 0)
+  changed_when: false
+
+- name: Store result from previous command
+  set_fact:
+    system_crypto_policy: "{{ crypto_cmd_result.stdout }}"
+
+- name: "Current crypto-policy is {{ system_crypto_policy }}"
+  debug:
+    msg:
+      - "Current crypto-policy is: {{ system_crypto_policy }}"
+      - "Policy selected to be set on this system: {{ crypto_policy }}"
+
+- name: Set crypto-policy from {{ system_crypto_policy }} to {{ crypto_policy | upper }}
+  command: "/usr/bin/update-crypto-policies --set {{ crypto_policy | upper }}"
+  register: crypto_cmd_result
+  failed_when: crypto_cmd_result.rc != 0
+  changed_when: system_crypto_policy != crypto_policy | upper and crypto_cmd_result.rc == 0
+  when: crypto_policy is defined and system_crypto_policy != crypto_policy | upper
+  notify: reboot
+
+- name: Check to see if FIPS mode is already set up if crypto_policy == "FIPS"
+  command: /usr/sbin/fips-mode-setup --is-enabled
+  register: fips_mode
+  when: crypto_policy is defined and crypto_policy | upper == "FIPS"
+  failed_when: false
+  changed_when: false
+
+- name: Enabling FIPS mode if crypt_policy set to FIPS
+  command: /usr/bin/fips-mode-setup --enable
+  when: ( crypto_policy is defined and crypto_policy | upper == "FIPS") and fips_mode.rc == "2"

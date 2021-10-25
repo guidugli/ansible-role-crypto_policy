@@ -1,0 +1,14 @@
+---
+# handlers file for crypto_policy
+
+- name: reboot
+  reboot:
+    msg: "Reboot initiated by Ansible for updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: uptime
+  when:
+    - crypto_reboot_after_update
+    - ansible_connection != "docker"

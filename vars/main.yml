@@ -1,0 +1,26 @@
+---
+# vars file for crypto_policy
+
+_cryto_policy_systems:
+  RedHat: yes
+  Fedora: yes
+  CentOS: yes
+  default: no
+
+_enable_crypto_policy: "{{ _cryto_policy_systems[ansible_distribution ~ '-' ~ ansible_distribution_major_version] |
+                        default(_cryto_policy_systems[ansible_distribution]) |
+                        default(_cryto_policy_systems['default']) }}"
+
+_crypto_policy_packages:
+  RedHat: ['crypto-policies', 'crypto-policies-scripts']
+  Fedora: ['crypto-policies', 'crypto-policies-scripts']
+  CentOS: ['crypto-policies', 'crypto-policies-scripts']
+  Ubuntu: ['crypto-policies']
+  default: ['crypto-policies']
+
+crypto_policy_packages: "{{ _crypto_policy_packages[ansible_distribution ~ '-' ~ ansible_distribution_major_version] |
+                          default(_crypto_policy_packages[ansible_distribution]) |
+                          default(_crypto_policy_packages['default']) }}"
+
+# LEGACY is not on the list because it is insecure.
+_available_crypto_policies: ["DEFAULT", "FUTURE", "FIPS"]
