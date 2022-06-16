@@ -2,7 +2,7 @@
 # tasks file for crypto_policy
 
 - name: Check if variables are correctly set
-  assert:
+  ansible.builtin.assert:
     that:
       - crypto_policy is defined
       - crypto_policy | length > 0
@@ -14,7 +14,7 @@
 
 
 - name: Display error if crypto variable violates policy
-  debug:
+  ansible.builtin.debug:
     msg:
       - "crypto_policy is set to: {{ crypto_policy }}. Which is not a valid selection."
       - "Valid choices are DEFAULT, FUTURE, and FIPS."
@@ -24,5 +24,5 @@
     - (crypto_policy | upper) not in _available_crypto_policies
 
 - name: Configure/Setup crypto-policy
-  include_tasks: setup.yml
+  ansible.builtin.include_tasks: setup.yml
   when: enable_crypto_policy
