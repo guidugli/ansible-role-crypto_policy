@@ -6,10 +6,12 @@
 # configure cryto policy on RedHat/CentOS/Fedora systems.
 enable_crypto_policy: "{{ _enable_crypto_policy }}"
 
-# Valid values are DEFAULT, FUTURE and FIPS
 # Recommended using DEFAULT or FUTURE
-# LEGACY is not allowed for security reasons.
+# LEGACY should not be used as it is not secure.
 crypto_policy: DEFAULT
 
+# Specify crypto policy command to reload
+crypto_policies_reload: no
+
 # If policy is updated, reboot the target device?
-crypto_reboot_after_update: yes
+crypto_reboot_after_update: no

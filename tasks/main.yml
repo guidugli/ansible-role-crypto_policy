@@ -12,17 +12,6 @@
       - crypto_reboot_after_update | type_debug == 'bool'
     quiet: yes
 
-
-- name: Display error if crypto variable violates policy
-  ansible.builtin.debug:
-    msg:
-      - "crypto_policy is set to: {{ crypto_policy }}. Which is not a valid selection."
-      - "Valid choices are DEFAULT, FUTURE, and FIPS."
-      - "LEGACY selection does not satisfy the control requirement"
-      - "Refusing to update crypto_policy information"
-  when:
-    - (crypto_policy | upper) not in _available_crypto_policies
-
 - name: Configure/Setup crypto-policy
   ansible.builtin.include_tasks: setup.yml
   when: enable_crypto_policy

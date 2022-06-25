@@ -7,24 +7,21 @@
     state: present
     update_cache: yes
 
-- name: Get system crypto policy
-  ansible.builtin.command: "/usr/bin/update-crypto-policies --show"
-  register: crypto_cmd_result
-  failed_when: crypto_cmd_result.rc != 0 or (crypto_cmd_result.stdout | length == 0)
-  changed_when: false
-
-- name: Store result from previous command
-  ansible.builtin.set_fact:
-    system_crypto_policy: "{{ crypto_cmd_result.stdout }}"
+- ansible.builtin.include_tasks: gather_facts.yml
 
 - name: "Current crypto-policy is {{ system_crypto_policy }}"
   ansible.builtin.debug:
     msg:
       - "Current crypto-policy is: {{ system_crypto_policy }}"
       - "Policy selected to be set on this system: {{ crypto_policy }}"
+      - "Available policies: {{ system_crypto_available_policies }}"
+      - "Available sub-policies: {{ system_crypto_available_subpolicies }}"
 
 - name: Set crypto-policy from {{ system_crypto_policy }} to {{ crypto_policy | upper }}
-  ansible.builtin.command: "/usr/bin/update-crypto-policies --set {{ crypto_policy | upper }}"
+  ansible.builtin.command: >
+    update-crypto-policies
+      {{ '--no-reload' if not crypto_policies_reload else '' }}
+      --set {{ crypto_policy | upper }}
   register: crypto_cmd_result
   failed_when: crypto_cmd_result.rc != 0
   changed_when: system_crypto_policy != crypto_policy | upper and crypto_cmd_result.rc == 0
@@ -41,3 +38,5 @@
 - name: Enabling FIPS mode if crypt_policy set to FIPS
   ansible.builtin.command: /usr/bin/fips-mode-setup --enable
   when: ( crypto_policy is defined and crypto_policy | upper == "FIPS") and fips_mode.rc == "2"
+
+- ansible.builtin.include_tasks: gather_facts.yml

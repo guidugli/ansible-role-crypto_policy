@@ -19,9 +19,11 @@ If true/yes, install and configure crypto policy on the system. Default settings
 
     crypto_policy: DEFAULT
 
-Valid values are DEFAULT, FUTURE and FIPS.
-Recommended using DEFAULT or FUTURE.
-LEGACY is not allowed for security reasons.
+Set crypto policy. Available policies are shown during role execution. The variable system_crypto_available_policies have the list of policies available.
+
+    crypto_policies_reload: no
+
+Specify crypto policy command to reload policy after update.
 
     crypto_reboot_after_update: yes
 

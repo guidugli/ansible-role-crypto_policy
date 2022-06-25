@@ -21,6 +21,3 @@ _crypto_policy_packages:
 crypto_policy_packages: "{{ _crypto_policy_packages[ansible_distribution ~ '-' ~ ansible_distribution_major_version] |
                           default(_crypto_policy_packages[ansible_distribution]) |
                           default(_crypto_policy_packages['default']) }}"
-
-# LEGACY is not on the list because it is insecure.
-_available_crypto_policies: ["DEFAULT", "FUTURE", "FIPS"]

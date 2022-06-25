@@ -1,0 +1,41 @@
+---
+
+- name: Get system crypto policy
+  ansible.builtin.command: "update-crypto-policies --show"
+  register: crypto_cmd_result
+  failed_when: crypto_cmd_result.rc != 0 or (crypto_cmd_result.stdout | length == 0)
+  changed_when: false
+
+- name: Store result from previous command
+  ansible.builtin.set_fact:
+    system_crypto_policy: "{{ crypto_cmd_result.stdout }}"
+
+- name: Find base policies files
+  ansible.builtin.find:
+    paths:
+      - /usr/share/crypto-policies/policies/
+      - /etc/crypto-policies/policies/
+    patterns: '*.pol'
+  register: crypto_cmd_result
+
+- name: Set available base policies fact
+  ansible.builtin.set_fact:
+    system_crypto_available_policies: >-
+      {{ crypto_cmd_result.files | map(attribute='path')
+        | map('basename') | map('splitext') | map('first') | unique | list }}
+    cacheable: true
+
+- name: Find subpolicy files
+  ansible.builtin.find:
+    paths:
+      - /usr/share/crypto-policies/policies/modules/
+      - /etc/crypto-policies/policies/modules/
+    patterns: '*.pmod'
+  register: crypto_cmd_result
+
+- name: Set available subpolicies fact
+  ansible.builtin.set_fact:
+    system_crypto_available_subpolicies: >-
+      {{ crypto_cmd_result.files | map(attribute='path')
+        | map('basename') | map('splitext') | map('first') | unique | list }}
+    cacheable: true
