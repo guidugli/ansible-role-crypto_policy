@@ -7,7 +7,8 @@
     state: present
     update_cache: yes
 
-- ansible.builtin.include_tasks: gather_facts.yml
+- name: Include Gather Aditional Facts
+  ansible.builtin.include_tasks: gather_facts.yml
 
 - name: "Current crypto-policy is {{ system_crypto_policy }}"
   ansible.builtin.debug:
@@ -26,7 +27,7 @@
   failed_when: crypto_cmd_result.rc != 0
   changed_when: system_crypto_policy != crypto_policy | upper and crypto_cmd_result.rc == 0
   when: crypto_policy is defined and system_crypto_policy != crypto_policy | upper
-  notify: reboot
+  notify: Reboot
 
 - name: Check to see if FIPS mode is already set up if crypto_policy == "FIPS"
   ansible.builtin.command: /usr/sbin/fips-mode-setup --is-enabled
@@ -39,4 +40,5 @@
   ansible.builtin.command: /usr/bin/fips-mode-setup --enable
   when: ( crypto_policy is defined and crypto_policy | upper == "FIPS") and fips_mode.rc == "2"
 
-- ansible.builtin.include_tasks: gather_facts.yml
+- name: Include Gather Aditional Facts
+  ansible.builtin.include_tasks: gather_facts.yml
