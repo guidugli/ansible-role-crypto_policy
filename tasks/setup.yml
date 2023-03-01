@@ -38,6 +38,7 @@
 
 - name: Enabling FIPS mode if crypt_policy set to FIPS
   ansible.builtin.command: /usr/bin/fips-mode-setup --enable
+  changed_when: true
   when: ( crypto_policy is defined and crypto_policy | upper == "FIPS") and fips_mode.rc == "2"
 
 - name: Include Gather Aditional Facts
