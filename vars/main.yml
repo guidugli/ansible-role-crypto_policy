@@ -3,6 +3,7 @@
 
 _cryto_policy_systems:
   RedHat: yes
+  Rocky: yes
   Fedora: yes
   CentOS: yes
   default: no
@@ -13,6 +14,7 @@ _enable_crypto_policy: "{{ _cryto_policy_systems[ansible_distribution ~ '-' ~ an
 
 _crypto_policy_packages:
   RedHat: ['crypto-policies', 'crypto-policies-scripts']
+  Rocky: ['crypto-policies', 'crypto-policies-scripts']
   Fedora: ['crypto-policies', 'crypto-policies-scripts']
   CentOS: ['crypto-policies', 'crypto-policies-scripts']
   Ubuntu: ['crypto-policies']

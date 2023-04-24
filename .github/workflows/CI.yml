@@ -44,13 +44,13 @@ jobs:
     strategy:
       matrix:
         distro:
+          - rockylinux9
           - centos8
           - ubuntu2004
           - ubuntu2204
-          - fedora34
-          - fedora35
-          - fedora36
+          - fedora38
           - fedora37
+          - fedora36
 
     steps:
       - name: Check out the codebase.
