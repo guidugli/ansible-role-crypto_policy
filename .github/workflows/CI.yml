@@ -54,8 +54,8 @@ jobs:
           - centos8
           - ubuntu2204
           - ubuntu2004
+          - fedora40
           - fedora39
-          - fedora38
 
     steps:
       - name: Check out the codebase.
