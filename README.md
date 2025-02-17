@@ -1,7 +1,7 @@
 Ansible Role: crypto_policy
 =========
 
-An Ansible Role that install and configure crypto_policy on RHEL/CentOS, Fedora and Debian/Ubuntu.
+An Ansible Role that install and configure crypto_policy on RHEL/CentOS and Fedora.
 
 Requirements
 ------------
