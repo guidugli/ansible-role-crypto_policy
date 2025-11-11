@@ -12,8 +12,8 @@ galaxy_info:
   platforms:
     - name: Fedora
       versions:
+        - '43'
         - '42'
-        - '41'
 
   galaxy_tags:
     - cryto

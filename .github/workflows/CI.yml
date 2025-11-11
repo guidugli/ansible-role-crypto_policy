@@ -50,8 +50,8 @@ jobs:
     strategy:
       matrix:
         distro:
+          - fedora43
           - fedora42
-          - fedora41
 
     steps:
 
