@@ -2,6 +2,7 @@
 # handlers file for crypto_policy
 
 - name: Reboot
+  become: yes
   ansible.builtin.reboot:
     msg: "Reboot initiated by Ansible for updates"
     connect_timeout: 5

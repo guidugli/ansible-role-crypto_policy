@@ -1,17 +1,22 @@
 ---
 # tasks file for crypto_policy
 
-- name: Check if variables are correctly set
-  ansible.builtin.assert:
-    that:
-      - crypto_policy is defined
-      - crypto_policy | length > 0
-      - enable_crypto_policy is defined
-      - enable_crypto_policy | type_debug == 'bool'
-      - crypto_reboot_after_update is defined
-      - crypto_reboot_after_update | type_debug == 'bool'
-    quiet: yes
+- name: Execute role tasks
+  block:
 
-- name: Configure/Setup crypto-policy
-  ansible.builtin.include_tasks: setup.yml
-  when: enable_crypto_policy
+    - name: Check if variables are correctly set
+      ansible.builtin.assert:
+        that:
+          - crypto_policy is defined
+          - crypto_policy | length > 0
+          - enable_crypto_policy is defined
+          - enable_crypto_policy | type_debug == 'bool'
+          - crypto_reboot_after_update is defined
+          - crypto_reboot_after_update | type_debug == 'bool'
+        quiet: yes
+    
+    - name: Configure/Setup crypto-policy
+      ansible.builtin.include_tasks: setup.yml
+      when: enable_crypto_policy
+
+  become: yes
