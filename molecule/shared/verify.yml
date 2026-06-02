@@ -1,0 +1,33 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Query configured crypto policy
+      ansible.builtin.command:
+        argv:
+          - update-crypto-policies
+          - --show
+      register: molecule_crypto_policy_show
+      changed_when: false
+
+    - name: Assert requested policy is active
+      ansible.builtin.assert:
+        that:
+          - molecule_crypto_policy_show.stdout | trim | upper == 'DEFAULT:NO-SHA1'
+        fail_msg: >-
+          Expected crypto policy ,DEFAULT:NO-SHA1 got
+          {{ molecule_crypto_policy_show.stdout | trim | upper }}.
+
+    - name: Verify required packages are installed
+      ansible.builtin.command:
+        argv:
+          - rpm
+          - -q
+          - crypto-policies
+          - crypto-policies-scripts
+      register: molecule_crypto_policy_packages
+      changed_when: false
+      failed_when: molecule_crypto_policy_packages.rc != 0

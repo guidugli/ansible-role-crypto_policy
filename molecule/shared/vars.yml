@@ -1,0 +1,9 @@
+---
+platform_matrix:
+    fedora:
+        - '44'
+        - '43'
+images:
+    ubuntu: docker.io/library/ubuntu
+    debian: docker.io/library/debian
+    fedora: registry.fedoraproject.org/fedora

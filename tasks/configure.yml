@@ -1,0 +1,73 @@
+---
+- name: Import package installation tasks
+  ansible.builtin.import_tasks: install.yml
+
+- name: Discover current crypto policy state
+  ansible.builtin.import_tasks: gather_facts.yml
+
+- name: Normalize requested crypto policy
+  ansible.builtin.set_fact:
+    crypto_policy_requested_normalized: "{{ crypto_policy | string | trim | upper }}"
+    crypto_policy_requested_parts: "{{ (crypto_policy | string | trim | upper).split(':') }}"
+
+- name: Assert requested base policy is supported on the target
+  ansible.builtin.assert:
+    that:
+      - crypto_policy_requested_parts[0] in system_crypto_available_policies
+    fail_msg: >-
+      Requested base policy {{ crypto_policy_requested_parts[0] }} is not available on this host.
+      Available base policies: {{ system_crypto_available_policies | join(', ') }}.
+
+- name: Assert requested subpolicies are supported on the target
+  ansible.builtin.assert:
+    that:
+      - >-
+        (
+          crypto_policy_requested_parts[1:] | difference(system_crypto_available_subpolicies)
+        ) | length == 0
+    fail_msg: >-
+      One or more requested subpolicies are not available on this host.
+      Requested subpolicies: {{ crypto_policy_requested_parts[1:] | join(', ')
+        if crypto_policy_requested_parts | length > 1 else 'none' }}.
+      Available subpolicies: {{ system_crypto_available_subpolicies | join(', ')
+        if system_crypto_available_subpolicies | length > 0 else 'none' }}.
+
+- name: Apply requested crypto policy
+  ansible.builtin.command: >-
+    update-crypto-policies
+    {{ '--no-reload' if not crypto_policies_reload else '' }}
+    --set {{ crypto_policy_requested_normalized }}
+  register: crypto_policy_set_result
+  changed_when: system_crypto_policy != crypto_policy_requested_normalized
+  failed_when: crypto_policy_set_result.rc != 0
+  when: system_crypto_policy != crypto_policy_requested_normalized
+  notify: Reboot
+
+- name: Check FIPS mode status
+  ansible.builtin.command:
+    argv:
+      - /usr/sbin/fips-mode-setup
+      - --is-enabled
+  register: crypto_policy_fips_mode_status
+  changed_when: false
+  failed_when: false
+  when:
+    - crypto_policy_manage_fips_mode | bool
+    - crypto_policy_requested_normalized == 'FIPS'
+
+- name: Enable FIPS mode when requested
+  ansible.builtin.command:
+    argv:
+      - /usr/sbin/fips-mode-setup
+      - --enable
+  register: crypto_policy_enable_fips_result
+  changed_when: crypto_policy_enable_fips_result.rc == 0
+  failed_when: crypto_policy_enable_fips_result.rc != 0
+  when:
+    - crypto_policy_manage_fips_mode | bool
+    - crypto_policy_requested_normalized == 'FIPS'
+    - crypto_policy_fips_mode_status.rc != 0
+  notify: Reboot
+
+- name: Refresh crypto policy facts after changes
+  ansible.builtin.import_tasks: gather_facts.yml

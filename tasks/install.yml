@@ -1,0 +1,5 @@
+---
+- name: Ensure crypto policy packages are installed
+  ansible.builtin.dnf:
+    name: "{{ crypto_policy_packages }}"
+    state: present

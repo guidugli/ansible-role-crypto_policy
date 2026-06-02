@@ -1,0 +1,30 @@
+---
+- name: Assert gathered facts required by the role are available
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] is defined
+      - ansible_facts['os_family'] is defined
+    fail_msg: >-
+      This role requires standard distribution facts. Run the play with
+      gather_facts: true or gather equivalent facts before including the role.
+
+- name: Assert supported platform
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'Fedora'
+      - ansible_facts['os_family'] == 'RedHat'
+    fail_msg: >-
+      This role supports Fedora only. Detected
+      {{ ansible_facts['distribution'] }}
+      {{ ansible_facts['distribution_version'] | default('unknown') }}.
+
+- name: Assert crypto policy input shape
+  ansible.builtin.assert:
+    that:
+      - crypto_policy | string | trim | length > 0
+      - (crypto_policy | string | trim) is match('^[A-Za-z0-9_-]+(?::[A-Za-z0-9_-]+)*$')
+      - crypto_policy_packages | length > 0
+    fail_msg: >-
+      crypto_policy must be a non-empty string containing a base policy and
+      optional subpolicies separated by colons, and crypto_policy_packages must
+      contain at least one package.

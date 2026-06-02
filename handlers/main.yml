@@ -1,15 +1,12 @@
 ---
-# handlers file for crypto_policy
-
 - name: Reboot
-  become: yes
   ansible.builtin.reboot:
-    msg: "Reboot initiated by Ansible for updates"
+    msg: Reboot initiated by Ansible after crypto policy changes.
     connect_timeout: 5
-    reboot_timeout: 300
+    reboot_timeout: 600
     pre_reboot_delay: 0
     post_reboot_delay: 30
     test_command: uptime
   when:
-    - crypto_reboot_after_update
-    - ansible_connection != "docker"
+    - crypto_reboot_after_update | bool
+    - ansible_virtualization_type | default('') not in ['container', 'docker', 'podman']

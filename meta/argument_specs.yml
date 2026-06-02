@@ -1,0 +1,39 @@
+---
+argument_specs:
+  main:
+    short_description: Manage Fedora crypto policy.
+    description:
+      - Install crypto policy packages on Fedora and apply a validated crypto policy.
+      - Optional FIPS mode enablement is available but disabled by default.
+    options:
+      enable_crypto_policy:
+        type: bool
+        required: false
+        description:
+          - Whether the role should manage crypto policy on the target host.
+      crypto_policy:
+        type: str
+        required: false
+        description:
+          - Requested crypto policy string, for example C(DEFAULT) or C(DEFAULT:NO-SHA1).
+      crypto_policies_reload:
+        type: bool
+        required: false
+        description:
+          - Whether to let C(update-crypto-policies) reload policies immediately.
+      crypto_reboot_after_update:
+        type: bool
+        required: false
+        description:
+          - Whether to reboot the host after a policy change when a reboot is feasible.
+      crypto_policy_manage_fips_mode:
+        type: bool
+        required: false
+        description:
+          - Whether to run C(fips-mode-setup --enable) when C(crypto_policy) is C(FIPS).
+      crypto_policy_packages:
+        type: list
+        elements: str
+        required: false
+        description:
+          - Package list required to manage crypto policy on Fedora.
