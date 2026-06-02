@@ -2,24 +2,44 @@
 # vars file for crypto_policy
 
 _cryto_policy_systems:
-  RedHat: yes
-  Rocky: yes
-  Fedora: yes
-  CentOS: yes
-  default: no
+  RedHat: true
+  Rocky: true
+  Fedora: true
+  CentOS: true
+  default: false
 
-_enable_crypto_policy: "{{ _cryto_policy_systems[ansible_distribution ~ '-' ~ ansible_distribution_major_version] |
-                        default(_cryto_policy_systems[ansible_distribution]) |
-                        default(_cryto_policy_systems['default']) }}"
+_enable_crypto_policy: >-
+  {{
+    _cryto_policy_systems[
+      ansible_facts['distribution'] ~ '-' ~ ansible_facts['distribution_major_version']
+    ]
+    | default(_cryto_policy_systems[ansible_facts['distribution']])
+    | default(_cryto_policy_systems['default'])
+  }}
 
 _crypto_policy_packages:
-  RedHat: ['crypto-policies', 'crypto-policies-scripts']
-  Rocky: ['crypto-policies', 'crypto-policies-scripts']
-  Fedora: ['crypto-policies', 'crypto-policies-scripts']
-  CentOS: ['crypto-policies', 'crypto-policies-scripts']
-  Ubuntu: ['crypto-policies']
-  default: ['crypto-policies']
+  RedHat:
+    - crypto-policies
+    - crypto-policies-scripts
+  Rocky:
+    - crypto-policies
+    - crypto-policies-scripts
+  Fedora:
+    - crypto-policies
+    - crypto-policies-scripts
+  CentOS:
+    - crypto-policies
+    - crypto-policies-scripts
+  Ubuntu:
+    - crypto-policies
+  default:
+    - crypto-policies
 
-crypto_policy_packages: "{{ _crypto_policy_packages[ansible_distribution ~ '-' ~ ansible_distribution_major_version] |
-                          default(_crypto_policy_packages[ansible_distribution]) |
-                          default(_crypto_policy_packages['default']) }}"
+crypto_policy_packages: >-
+  {{
+    _crypto_policy_packages[
+      ansible_facts['distribution'] ~ '-' ~ ansible_facts['distribution_major_version']
+    ]
+    | default(_crypto_policy_packages[ansible_facts['distribution']])
+    | default(_crypto_policy_packages['default'])
+  }}

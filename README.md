@@ -13,28 +13,40 @@ This role installs the required Fedora crypto policy packages, validates the req
 policy against the target host's available policies and subpolicies, and applies the
 requested policy with `update-crypto-policies`.
 
-The role is intentionally scoped to Fedora only.
+The role is intentionally scoped to Fedora execution, while keeping the shared
+platform-matrix/generator pattern used across the rest of the role ecosystem.
 
 ## Features
 
-- Fedora-only support with explicit platform assertions.
+- Fedora-only runtime support with explicit platform assertions.
 - Automatic Ansible argument validation via `meta/argument_specs.yml`.
 - Semantic validation in `tasks/assert.yml`.
-- Idempotent policy application.
+- Idempotent crypto policy application.
 - Optional FIPS mode enablement, disabled by default.
-- Generator-based Galaxy metadata refresh.
-- Molecule coverage using a shared playbook structure.
+- Generator-based metadata and Molecule inventory refresh.
+- Shared Molecule structure with `default` and `systemd` scenarios.
+- CI, release, and local helper scripts aligned with the current repository pattern.
 
 ## Supported platforms
 
-- Fedora 42
+### Runtime support
+
+- Fedora
+
+### Molecule test coverage
+
+- Fedora 44
 - Fedora 43
+
+> `meta/main.yml` is generated and currently renders Fedora as `all`, while Molecule
+> inventories are generated from `molecule/shared/vars.yml` and currently test Fedora 44/43.
 
 ## Role variables
 
 Defaults are defined in [`defaults/main.yml`](defaults/main.yml).
 
 ```yaml
+---
 enable_crypto_policy: true
 crypto_policy: DEFAULT
 crypto_policies_reload: false
@@ -45,23 +57,32 @@ crypto_policy_packages:
   - crypto-policies-scripts
 ```
 
-### Important behavior
+### Variables resolved from `vars/main.yml`
+
+The repository keeps the shared pattern of deriving some internal values from
+`vars/main.yml`. That file now uses `ansible_facts[...]` accessors to avoid
+`INJECT_FACTS_AS_VARS` deprecation warnings while preserving the same generator-friendly
+role structure used in your other roles.
+
+## Important behavior
 
 - `crypto_policy` accepts a base policy with optional subpolicies, for example
   `DEFAULT` or `DEFAULT:NO-SHA1`.
 - The role validates the requested policy against the policy files available on the target.
 - `crypto_policy_manage_fips_mode` is separate from `crypto_policy: FIPS` because enabling
   OS-level FIPS mode is a broader operational change than setting the crypto policy value.
+- The role does not force `become` in role tasks. Callers should set privilege escalation
+  at play level when needed.
 
 ## How it works
 
-1. Validate public inputs with role argument specs.
-2. Assert Fedora support and semantic input correctness.
-3. Install required packages.
-4. Discover available policies and current system state.
-5. Validate the requested base policy and subpolicies against the target.
-6. Apply the policy only when the current policy differs.
-7. Optionally enable FIPS mode and reboot when requested.
+1. Ansible performs automatic role argument validation using `meta/argument_specs.yml`.
+2. `tasks/assert.yml` enforces Fedora-only runtime support and semantic validation.
+3. The role installs required packages.
+4. The role discovers the current crypto policy plus available base policies and subpolicies.
+5. The requested policy is normalized and validated.
+6. The role applies the requested policy only when a change is required.
+7. Optional FIPS enablement and reboot handling are triggered only when requested.
 
 ## Usage
 
@@ -87,7 +108,7 @@ crypto_policy_packages:
     - role: guidugli.crypto_policy
       vars:
         crypto_policy: DEFAULT:NO-SHA1
-        crypto_policies_reload: false
+        crypto_policies_reload: true
 ```
 
 ### FIPS mode example
@@ -107,38 +128,60 @@ crypto_policy_packages:
 
 ## Design notes
 
-- The role does **not** force `become` in tasks. Callers should set `become: true` in the play.
-- Reboot handling is delegated to a handler and skipped automatically in containerized Molecule runs.
-- The role relies on standard gathered facts and should normally run with `gather_facts: true`.
+- Runtime support is Fedora-only by design.
+- The repository still uses the same generated/shared metadata and inventory flow used by your
+  other modernized roles, even though this role only executes on Fedora.
+- Reboot handling is delegated to a handler and skipped automatically when the environment is
+  detected as a container.
+- The role expects gathered facts to be available.
 
 ## Molecule testing
 
-The repository uses a shared Molecule playbook structure:
+The repository uses a shared Molecule structure:
 
 - `molecule/shared/vars.yml`
 - `molecule/shared/converge.yml`
 - `molecule/shared/verify.yml`
 - `molecule/default/`
+- `molecule/systemd/`
 
-Run locally:
+### Scenarios
+
+- `default`: Podman-based container validation.
+- `systemd`: Podman-based systemd-capable container validation.
+
+### Local run
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install "ansible-core>=2.16,<2.19" ansible-lint yamllint molecule "molecule-plugins[docker]"
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
 ansible-galaxy collection install -r requirements.yml
 ./scripts/update_release_metadata.sh
-molecule test
+molecule test -s default
+molecule test -s systemd
 ```
+
+## Metadata / inventory generation
+
+The repository follows the same template-first and generator-based pattern used in your other
+modernized roles:
+
+- `scripts/update_release_metadata.sh`
+- `scripts/render_inventory.py`
+- `scripts/render_meta_main.py`
+- `templates/meta_main.yml.j2`
+- `molecule/shared/vars.yml`
+
+`update_release_metadata.sh` syntax-checks the generator scripts, optionally refreshes the shared
+platform matrix, regenerates Molecule inventories, and renders `meta/main.yml`.
 
 ## Release workflow
 
-- `scripts/update_release_metadata.sh` performs a fail-fast syntax check on generator scripts.
-- `scripts/render_meta_main.py` renders `meta/main.yml` from `templates/meta_main.yml.j2`
-  and `molecule/shared/vars.yml`.
-- CI verifies that generated metadata is up to date.
-- Tagged pushes trigger the release workflow.
+- CI runs Molecule for the configured scenarios.
+- Tagged pushes matching `v*` trigger the release workflow.
+- `scripts/release.sh` can be used to refresh generated assets, run tests, create the release
+  commit/tag, and push the result.
 
 ## Repository structure
 
@@ -149,10 +192,13 @@ molecule test
 ├── meta/
 ├── molecule/
 │   ├── default/
-│   └── shared/
+│   ├── shared/
+│   └── systemd/
 ├── scripts/
 ├── tasks/
-└── templates/
+├── templates/
+├── tests/
+└── vars/
 ```
 
 ## License
